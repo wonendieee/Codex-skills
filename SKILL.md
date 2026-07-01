@@ -1,6 +1,6 @@
 ---
 name: windows-powershell-safety
-description: "Mandatory prerequisite before Codex runs commands on Windows through PowerShell or prepares command-line work in Windows projects. Use for every Windows/PowerShell command-line task, especially when output may include Chinese or other UTF-8 text, when invoking Node/npm/npx/pnpm/yarn wrappers, when handling Windows paths, when reading or writing text with encodings, or when diagnosing sandbox, ACL, network, execution-policy, or permission failures."
+description: "Mandatory prerequisite before Codex runs commands on Windows through PowerShell or prepares command-line work in Windows projects. Use for every Windows/PowerShell command-line task, especially when output may include Chinese or other UTF-8 text, when invoking Node/npm/npx/pnpm/yarn wrappers, when handling Windows paths, when reading or writing text with encodings, when considering parallel shell reads/searches, or when diagnosing sandbox, ACL, network, execution-policy, or permission failures."
 ---
 
 # Windows PowerShell Safety
@@ -56,6 +56,19 @@ Remove-Item -LiteralPath $target -Recurse
 
 Before recursive delete or move operations, verify the resolved absolute target remains inside the intended workspace. Never compose destructive filesystem operations across shells.
 
+## Parallel PowerShell Guardrails
+
+Avoid parallel PowerShell subprocess fan-out for routine file reads, searches, and diagnostics. Prefer one focused command, such as a single `rg` invocation or one `Get-Content -LiteralPath ... -Encoding UTF8`, because each `exec_command` runs as an independently sandboxed process.
+
+If parallel shell calls are genuinely useful, each command must be independently safe:
+
+- Include the UTF-8 preamble when output may include non-ASCII text.
+- Use absolute paths and `-LiteralPath` where available.
+- Avoid package-manager shims, network access, writes, and permission-changing operations.
+- Keep each command useful even if the other parallel commands fail.
+
+If any parallel PowerShell subprocess is rejected, access denied, blocked by execution policy, or otherwise sandbox-denied, treat the whole parallel batch as partially failed. Do not infer success from the commands that happened to complete. Stop issuing additional parallel shell calls, report the partial failure, and continue with one narrow serial command at a time. If the rejected command is required for the user's task, rerun that specific command with `sandbox_permissions: "require_escalated"` and a narrow justification.
+
 ## Shell Dialect Checks
 
 Do not paste Bash idioms into PowerShell commands. Replace them with PowerShell equivalents or use the appropriate shell intentionally.
@@ -77,6 +90,7 @@ When a command fails with access denied, execution policy, npm cache, registry, 
 - If sandboxing or network restriction blocks an important command, rerun with `sandbox_permissions: "require_escalated"` and a narrow justification.
 - If an escalation is rejected, do not work around it. Use a safer alternative or ask the user for explicit approval after explaining the risk.
 - Do not request broad persistent permission changes unless the user explicitly asks for them.
+- If a parallel command batch partially fails, treat the denial as a real failure signal and switch to serial diagnostics before drawing conclusions.
 
 ## Quick Checklist
 
@@ -86,4 +100,5 @@ Before executing, confirm:
 2. `.cmd` wrappers are used for Node package-manager commands.
 3. Paths are quoted and passed through `-LiteralPath` when available.
 4. Bash syntax has not leaked into PowerShell.
-5. Any approval request is narrow, truthful, and tied to the user's task.
+5. Parallel PowerShell fan-out is avoided unless every subprocess is independently safe.
+6. Any approval request is narrow, truthful, and tied to the user's task.
