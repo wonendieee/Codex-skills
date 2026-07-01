@@ -1,7 +1,0 @@
-interface:
-  display_name: "Windows PowerShell Safety"
-  short_description: "Safer UTF-8 PowerShell command habits"
-  default_prompt: "Use $windows-powershell-safety before running Windows PowerShell commands that may touch UTF-8 text, Node wrappers, paths, or sandbox approvals."
-
-policy:
-  allow_implicit_invocation: true
