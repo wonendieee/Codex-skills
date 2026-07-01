@@ -1,6 +1,6 @@
 ---
 name: windows-powershell-safety
-description: "Use whenever Codex runs commands on Windows through PowerShell, especially when output may include Chinese or other UTF-8 text, when invoking Node/npm/npx/pnpm/yarn wrappers, when handling Windows paths, when reading or writing text with encodings, or when diagnosing sandbox, ACL, network, or execution-policy failures."
+description: "Mandatory prerequisite before Codex runs commands on Windows through PowerShell or prepares command-line work in Windows projects. Use for every Windows/PowerShell command-line task, especially when output may include Chinese or other UTF-8 text, when invoking Node/npm/npx/pnpm/yarn wrappers, when handling Windows paths, when reading or writing text with encodings, or when diagnosing sandbox, ACL, network, execution-policy, or permission failures."
 ---
 
 # Windows PowerShell Safety
